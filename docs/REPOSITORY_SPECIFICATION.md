@@ -1,6 +1,6 @@
 # Repository specification: aether-ai-integrations
 
-**Status:** Documentation baseline copied from the Aether AI master specification. Implementation status must be verified separately.
+**Status:** Repository exists; documentation-only on the inspected `main` branch. No application implementation is present in the audited tree.
 
 ## Mission
 
@@ -8,7 +8,7 @@ First-party connectors for external services and secure credential handoff.
 
 ## Dependencies and connections
 
-Tools, MCP, auth, security.
+aether-ai-tools, aether-ai-auth, and aether-ai-security; aether-ai-mcp only for integrations that explicitly use MCP.
 
 ## Owned capabilities
 
