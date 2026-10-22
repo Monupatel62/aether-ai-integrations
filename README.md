@@ -1,0 +1,21 @@
+# aether-ai-integrations
+
+Aether AI repository for First-party connectors for external services and secure credential handoff.
+
+## Status
+
+Documentation baseline established. This repository is not considered implemented or production-ready until code, tests, security review, and release checks are completed.
+
+## Documentation
+
+- [Repository specification](docs/REPOSITORY_SPECIFICATION.md) — mission, boundaries, dependencies, contracts, security, tests, and implementation gates.
+- [Aether AI platform architecture](https://github.com/Monupatel62/aether-ai-platform/blob/main/docs/MASTER_ARCHITECTURE.md)
+- [Master repository catalog](https://github.com/Monupatel62/aether-ai-platform/blob/main/docs/REPOSITORY_CATALOG.md)
+
+## Working rules
+
+- Keep this repository within its documented ownership boundary.
+- Do not commit secrets, credentials, production data, or unreviewed generated code.
+- Version public contracts and document breaking changes.
+- Use synthetic or sanitized data in tests.
+- Update the master catalog when ownership or cross-repository contracts change.
