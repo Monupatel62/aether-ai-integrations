@@ -5,6 +5,13 @@ export class IntegrationError extends Error {
 function isRecord(value) { return value !== null && typeof value === "object" && !Array.isArray(value); }
 function validId(value) { return typeof value === "string" && ID.test(value) && value.trim() === value; }
 function safeError(code) { return new IntegrationError(code); }
+async function boundedCall(fn, context, timeoutMs, code) {
+  const controller = new AbortController();
+  let timer;
+  const timeout = new Promise((_, reject) => { timer = setTimeout(() => { controller.abort(); reject(safeError(code)); }, timeoutMs); });
+  try { return await Promise.race([Promise.resolve().then(() => fn({ ...context, signal: controller.signal })), timeout]); }
+  finally { clearTimeout(timer); }
+}
 
 export function createIntegrationRegistry({ authorize, resolveCredentials, timeoutMs = 15_000, maxInputBytes = 65_536, maxOutputBytes = 262_144 }) {
   if (typeof authorize !== "function" || typeof resolveCredentials !== "function") throw new TypeError("Authorization and credential resolver are required");
@@ -37,12 +44,12 @@ export function createIntegrationRegistry({ authorize, resolveCredentials, timeo
       if (!inputValid) throw safeError("invalid_input");
 
       let allowed = false;
-      try { allowed = (await authorize({ principal, action: "integration:invoke", integrationId, connectionId, requiredScopes: integration.requiredScopes })) === true; }
+      try { allowed = (await boundedCall(authorize, { principal, action: "integration:invoke", integrationId, connectionId, requiredScopes: integration.requiredScopes }, timeoutMs, "authorization_timeout")) === true; }
       catch { throw safeError("authorization_unavailable"); }
       if (!allowed) throw safeError("forbidden");
 
       let credentials;
-      try { credentials = await resolveCredentials({ principal, integrationId, connectionId, requiredScopes: integration.requiredScopes }); }
+      try { credentials = await boundedCall(resolveCredentials, { principal, integrationId, connectionId, requiredScopes: integration.requiredScopes }, timeoutMs, "credentials_timeout"); }
       catch { throw safeError("credentials_unavailable"); }
       if (!isRecord(credentials) || credentials.tenantId !== principal.tenantId || !Array.isArray(credentials.scopes)
         || integration.requiredScopes.some((scope) => !credentials.scopes.includes(scope))) throw safeError("insufficient_connection_scopes");
