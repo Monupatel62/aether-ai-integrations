@@ -47,14 +47,19 @@ export function createIntegrationRegistry({ authorize, resolveCredentials, timeo
       if (!isRecord(credentials) || credentials.tenantId !== principal.tenantId || !Array.isArray(credentials.scopes)
         || integration.requiredScopes.some((scope) => !credentials.scopes.includes(scope))) throw safeError("insufficient_connection_scopes");
 
+      if (signal?.aborted) throw safeError("aborted");
       const controller = new AbortController();
       const onAbort = () => controller.abort(signal?.reason);
-      if (signal?.aborted) onAbort(); else signal?.addEventListener("abort", onAbort, { once: true });
+      signal?.addEventListener("abort", onAbort, { once: true });
       const timeout = setTimeout(() => controller.abort(), timeoutMs);
       try {
         const output = await Promise.race([
           Promise.resolve().then(() => integration.invoke(input, { credentials, signal: controller.signal, tenantId: principal.tenantId })),
-          new Promise((_, reject) => controller.signal.addEventListener("abort", () => reject(safeError("timeout")), { once: true })),
+          new Promise((_, reject) => {
+            const rejectOnAbort = () => reject(safeError(signal?.aborted ? "aborted" : "timeout"));
+            if (controller.signal.aborted) rejectOnAbort();
+            else controller.signal.addEventListener("abort", rejectOnAbort, { once: true });
+          }),
         ]);
         let outputSize;
         try { outputSize = Buffer.byteLength(JSON.stringify(output)); } catch { throw safeError("invalid_output"); }
@@ -65,7 +70,7 @@ export function createIntegrationRegistry({ authorize, resolveCredentials, timeo
         return Object.freeze({ integrationId, output });
       } catch (error) {
         if (error instanceof IntegrationError) throw error;
-        if (controller.signal.aborted) throw safeError("timeout");
+        if (controller.signal.aborted) throw safeError(signal?.aborted ? "aborted" : "timeout");
         throw safeError("invocation_failed");
       } finally {
         clearTimeout(timeout);
