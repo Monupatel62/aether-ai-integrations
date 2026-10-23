@@ -1,33 +1,26 @@
 # aether-ai-integrations
 
-Aether AI repository for First-party connectors for external services and secure credential handoff.
+**Status:** Initial signed-webhook verification boundary implemented on a feature branch. No external provider integration is configured.
 
-## Status
+## Implemented
 
-Documentation baseline established. This repository is not considered implemented or production-ready until code, tests, security review, and release checks are completed.
+- [Webhook verifier](src/index.js): HMAC-SHA256 over the exact raw body, timestamp freshness checks, constant-time signature comparison, bounded payloads, event ID replay protection, and safe processing errors.
+- [Unit tests](test/integrations.test.js): valid signatures, tampering, stale timestamps, duplicate events, replay-claim release, malformed JSON, and weak secrets.
+- Dependency-free Node.js package with Node 20/22 CI.
+
+## Security limitations
+
+- Secrets must be obtained from a trusted secret manager and rotated; no secret is stored in this repository.
+- Replay storage must implement atomic claim/release with durable semantics.
+- The provider must document its signature format; this implementation's x-aether-* headers are an Aether contract, not universal vendor compatibility.
+- Production use still requires TLS, provider-specific signature adapters, durable event processing/outbox semantics, audit metadata, and operational alerting.
 
 ## Documentation
 
-- [Repository specification](docs/REPOSITORY_SPECIFICATION.md) — mission, boundaries, dependencies, contracts, security, tests, and implementation gates.
-- [Aether AI platform architecture](https://github.com/Monupatel62/aether-ai-platform/blob/main/docs/MASTER_ARCHITECTURE.md)
-- [Master repository catalog](https://github.com/Monupatel62/aether-ai-platform/blob/main/docs/REPOSITORY_CATALOG.md)
-
-## Working rules
-
-- Keep this repository within its documented ownership boundary.
-- Do not commit secrets, credentials, production data, or unreviewed generated code.
-- Version public contracts and document breaking changes.
-- Use synthetic or sanitized data in tests.
-- Update the master catalog when ownership or cross-repository contracts change.
-
-## Repository documents
-
+- [Repository specification](docs/REPOSITORY_SPECIFICATION.md)
 - [Project specification](docs/PROJECT_SPEC.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [Dependencies and contracts](docs/DEPENDENCIES_AND_CONTRACTS.md)
 - [Implementation plan](docs/IMPLEMENTATION_PLAN.md)
-- [Research and licenses](docs/RESEARCH_AND_LICENSES.md)
-- [Technical design](docs/TECHNICAL_DESIGN.md)
 - [Security review](docs/SECURITY_REVIEW.md)
-- [Engineering standard](docs/ENGINEERING_STANDARD.md)
-- [Work log](docs/WORKLOG.md)
+- [Master catalog](https://github.com/Monupatel62/aether-ai-platform/blob/main/docs/REPOSITORY_CATALOG.md)
