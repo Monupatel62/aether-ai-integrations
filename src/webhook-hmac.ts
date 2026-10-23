@@ -35,8 +35,10 @@ export async function verifyWebhookHmacSha256(
   signed.set(rawBody, prefix.byteLength);
 
   try {
-    const key = await crypto.subtle.importKey("raw", secret, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
-    const digest = new Uint8Array(await crypto.subtle.sign("HMAC", key, signed));
+    const secretCopy = Uint8Array.from(secret);
+    const signedCopy = Uint8Array.from(signed);
+    const key = await crypto.subtle.importKey("raw", secretCopy.buffer as ArrayBuffer, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+    const digest = new Uint8Array(await crypto.subtle.sign("HMAC", key, signedCopy.buffer as ArrayBuffer));
     const supplied = hexToBytes(signatureHex);
     return constantTimeEqual(digest, supplied);
   } catch {
