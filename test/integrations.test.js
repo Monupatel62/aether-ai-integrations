@@ -48,3 +48,11 @@ test("lists only integration metadata, never credentials", async () => {
   const registry = fixture();
   assert.deepEqual(registry.list(), [{ id: "calendar.read", requiredScopes: ["calendar.read"] }]);
 });
+
+
+test("bounds authorization and credential resolution before invocation", async () => {
+  const authTimeout = fixture({ timeoutMs: 5, authorize: () => new Promise(() => {}) });
+  await assert.rejects(authTimeout.invoke({ principal, integrationId: "calendar.read", connectionId: "c", input: { calendarId: "primary" } }), (e) => e.code === "authorization_unavailable");
+  const credentialTimeout = fixture({ timeoutMs: 5, resolveCredentials: () => new Promise(() => {}) });
+  await assert.rejects(credentialTimeout.invoke({ principal, integrationId: "calendar.read", connectionId: "c", input: { calendarId: "primary" } }), (e) => e.code === "credentials_unavailable");
+});
