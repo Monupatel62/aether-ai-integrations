@@ -4,7 +4,11 @@ Aether AI repository for First-party connectors for external services and secure
 
 ## Status
 
-Documentation baseline established. This repository is not considered implemented or production-ready until code, tests, security review, and release checks are completed.
+Initial generic webhook HMAC verification utility is in review. No provider connector, credential vault, outbound network policy, or production integration is implemented.
+
+## Initial implementation
+
+The draft package verifies HMAC-SHA256 over timestamp + dot + raw request bytes, with a bounded clock-skew window, body-size cap, minimum secret length, and constant-time digest comparison. Provider-specific signature schemes may differ; confirm the exact signed bytes and header grammar in an ADR before use. Replay prevention requires a durable event-ID store and is not implemented here.
 
 ## Documentation
 
